@@ -1,0 +1,33 @@
+{
+  "name": "parcial2-com610-lmmm",
+  "version": "1.1.0",
+  "description": "Segundo Examen Parcial COM610 - API REST Catálogo de Libros en EC2 + RDS con CI/CD (Luz Maria Muraña Mamani)",
+  "main": "server.js",
+  "author": "Luz Maria Muraña Mamani",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --coverage --detectOpenHandles",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/db.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ]
+  }
+}
