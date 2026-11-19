@@ -1,0 +1,9 @@
+node_modules
+coverage
+.git
+.github
+.env
+*.pem
+evidencias
+README.md
+tests
