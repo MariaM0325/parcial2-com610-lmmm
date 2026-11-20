@@ -11,9 +11,9 @@
   - Endpoint de estado: http://18.229.255.131/health
   - Endpoint de libros: http://18.229.255.131/libros
 - **Repositorio:** https://github.com/MariaM0325/parcial2-com610-lmmm
-- **Ejecuciones de CI:** https://github.com/MariaM0325/parcial2-com610-lmmm/actions/workflows/ci.yml
-- **Ejecuciones de CD:** https://github.com/MariaM0325/parcial2-com610-lmmm/actions/workflows/cd.yml
-- **Imagen en Docker Hub:** `maria093/api-libros-lmmm`
+- **Ejecución exitosa de CI:** https://github.com/MariaM0325/parcial2-com610-lmmm/actions/runs/44644010997
+- **Ejecución exitosa de CD:** https://github.com/MariaM0325/parcial2-com610-lmmm/actions/runs/44644010917
+- **Imagen en Docker Hub:** https://hub.docker.com/r/maria093/api-libros-lmmm/tags
 
 ## Recursos utilizados en AWS (Región sa-east-1)
 
