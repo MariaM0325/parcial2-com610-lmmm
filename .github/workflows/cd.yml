@@ -1,0 +1,96 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar pruebas
+        run: npm test
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Construir y subir imagen con SHA
+        run: |
+          IMAGE="${{ secrets.DOCKER_USERNAME }}/api-libros-lmmm"
+          docker build -t "${IMAGE}:${{ github.sha }}" -t "${IMAGE}:latest" .
+          docker push "${IMAGE}:${{ github.sha }}"
+          docker push "${IMAGE}:latest"
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Desplegar en EC2 por SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            IMAGE="${{ secrets.DOCKER_USERNAME }}/api-libros-lmmm"
+            NEW_IMAGE="${IMAGE}:${{ github.sha }}"
+            CONTAINER="api-libros-lmmm"
+
+            PREV_IMAGE=$(sudo docker inspect --format='{{.Config.Image}}' "${CONTAINER}" 2>/dev/null || echo "")
+            echo "Imagen anterior: ${PREV_IMAGE}"
+
+            sudo docker pull "${NEW_IMAGE}"
+            sudo docker stop "${CONTAINER}" 2>/dev/null || true
+            sudo docker rm "${CONTAINER}" 2>/dev/null || true
+
+            sudo docker run -d \
+              --name "${CONTAINER}" \
+              --restart unless-stopped \
+              --env-file /home/ubuntu/.env \
+              -e APP_VERSION="2.0.0-${{ github.sha }}" \
+              -p 127.0.0.1:3000:3000 \
+              "${NEW_IMAGE}"
+
+            sleep 5
+
+            if curl -fsS http://127.0.0.1/health && curl -fsS http://127.0.0.1/libros; then
+              echo "Despliegue verificado correctamente"
+            else
+              echo "Fallo la verificacion, restaurando version anterior..."
+              sudo docker stop "${CONTAINER}" 2>/dev/null || true
+              sudo docker rm "${CONTAINER}" 2>/dev/null || true
+              if [ -n "${PREV_IMAGE}" ]; then
+                sudo docker run -d \
+                  --name "${CONTAINER}" \
+                  --restart unless-stopped \
+                  --env-file /home/ubuntu/.env \
+                  -p 127.0.0.1:3000:3000 \
+                  "${PREV_IMAGE}"
+              fi
+              exit 1
+            fi

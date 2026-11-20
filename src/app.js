@@ -61,7 +61,8 @@ function createApp(repository = defaultRepository) {
       status: 'ok',
       active: true,
       service: 'api-libros-lmmm',
-      version: process.env.APP_VERSION || '1.1.0',
+      estudiante: 'Luz Maria Muraña Mamani',
+      version: process.env.APP_VERSION || '2.0.0',
       timestamp: new Date().toISOString()
     });
   });
